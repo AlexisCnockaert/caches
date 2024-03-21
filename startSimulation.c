@@ -67,7 +67,7 @@ int main() {
     }
 
     Cache* cache = initializeCache(num_lines_cache);
-    
+
     switch (choice) {
         case 1:
             // Simulation du cache Direct Mapping
@@ -81,7 +81,7 @@ int main() {
                     int set = address % num_lines_cache;
                     cache->lines[set].tag = address;
                     cache->lines[set].valid = 1;
-                    //LRU A IMPLEMENTER
+                 
                 }
             }
             break;
@@ -95,6 +95,7 @@ int main() {
                     num_misses++;
                     // Mettre à jour le cache en cas de miss
                     // ...
+                    // LRU à implémenter
                 }
             }
             break;
@@ -109,6 +110,7 @@ int main() {
                     num_misses++;
                     // Mettre à jour le cache en cas de miss
                     // ...
+                    // LRU à implémenter
                 }
             }
             break;
