@@ -43,6 +43,7 @@ int main() {
     int address;
     int num_hits = 0;
     int num_misses = 0;
+    int debug_mode = 0;
 
      // Simulation du cache selon le type choisi
     int choice;
@@ -74,6 +75,8 @@ int main() {
     switch (choice) {
         case 1:
             // Simulation du cache Direct Mapping
+            printf("Voulez-vous activer le mode de debogage ? (1 pour Oui, 0 pour Non) : ");
+            scanf("%d", &debug_mode);
             while (fscanf(input_file, "%d", &address) == 1) {
                 int result = accessCacheDirectMapping(cache, address, num_lines_cache);
                 if (result == CACHE_HIT)
@@ -83,9 +86,11 @@ int main() {
                     // Mettre à jour le cache en cas de miss
                     updateCacheMissDirectMapping(cache,address,num_lines_cache);
                 }
-                // printCache(cache); // debug mode de la hess
-                // printf("Press enter to continue !\n");
-                // getchar(); 
+                 if (debug_mode == 1){
+                printCache(cache); // Affichage du cache en mode de débogage si activé1
+                printf("Press enter to continue !\n");
+                getchar(); 
+                }
             }
             break;
         case 2:
@@ -136,8 +141,9 @@ int main() {
     printf("Temps moyen d'acces a une donnee : %.2lf cycles\n", average_access_time);
     printf("Speedup : %.2lf\n", speedup);
     // Libération de la mémoire allouée au cache
-    printCache(cache);
+    if(debug_mode==0){
+        printCache(cache);
+    }
     freeCache(cache);
-
     return 0;
 }
