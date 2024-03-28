@@ -1,17 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <unistd.h>
 #include "cache.h"
+#include "func.c"
+
 
 #define CACHE_MISS -1
 #define CACHE_HIT 1
 
 // Fonction pour initialiser le cache
-Cache* initializeCache(int num_lines) {
+Cache* initializeCache(int num_lines, int word_size) {
     Cache* cache = (Cache*)malloc(sizeof(Cache));
     cache->num_lines = num_lines;
-    cache->lines = (CacheLine*)malloc(num_lines * sizeof(CacheLine));
+    cache->lines = (CacheLine*)malloc(cache->num_lines * sizeof(CacheLine));
+    cache->word_size = word_size;
     for (int i = 0; i < num_lines; i++) {
         cache->lines[i].tag = -1;
         cache->lines[i].valid = 0;
@@ -26,10 +30,19 @@ void freeCache(Cache* cache) {
     free(cache);
 }
 
+int8_t getTagAddress(Cache *cache){ //only for mapping here
+    int offset = countPowersOfTwo(cache->word_size*8);
+    return (cache->word_size *8) - countPowersOfTwo(cache->num_lines)- offset;
+}
+
 // Fonction pour accéder au cache (Direct Mapping)
 int accessCacheDirectMapping(Cache* cache, int address, int num_sets) {
     int set = address % num_sets;
-    if (cache->lines[set].valid && cache->lines[set].tag == address)
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
+    //printf("%d\n",address);
+    //printf("%d\n",address_tag);
+    if (cache->lines[set].valid && cache->lines[set].tag == address_tag)
         return CACHE_HIT;
     return CACHE_MISS;
 }
@@ -52,6 +65,14 @@ int accessCacheSetAssociative(Cache* cache, int address, int num_sets) {
             return CACHE_HIT;
     }
     return CACHE_MISS;
+}
+
+void updateCacheMissDirectMapping(Cache *cache, int address, int num_sets){
+    int set = address % num_sets;
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
+    cache->lines[set].tag = address_tag;
+    cache->lines[set].valid = 1;      
 }
 
 int fileExists(const char *filename) {

@@ -13,9 +13,8 @@
 
 int main() {
     srand(time(NULL));
-
     // Initialisation des paramètres
-    int word_size = 4; // Taille d'un mot en octets
+    int word_size = 1; // Taille d'un mot en octets
     int num_lines_cache = 16; // Nombre de lignes du cache
     int cache_access_time = 1; // Temps d'accès au cache en nombre de cycles
     int ram_access_time = 50; // Temps d'accès à la RAM en nombre de cycles
@@ -36,7 +35,6 @@ int main() {
     }
 
     int address;
-    
     int num_hits = 0;
     int num_misses = 0;
 
@@ -66,7 +64,7 @@ int main() {
         return 1;
     }
 
-    Cache* cache = initializeCache(num_lines_cache);
+    Cache* cache = initializeCache(num_lines_cache,word_size);
 
     switch (choice) {
         case 1:
@@ -78,10 +76,7 @@ int main() {
                 else {
                     num_misses++;
                     // Mettre à jour le cache en cas de miss
-                    int set = address % num_lines_cache;
-                    cache->lines[set].tag = address;
-                    cache->lines[set].valid = 1;
-                 
+                    updateCacheMissDirectMapping(cache,address,num_lines_cache);
                 }
             }
             break;
