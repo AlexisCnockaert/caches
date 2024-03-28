@@ -40,8 +40,6 @@ int accessCacheDirectMapping(Cache* cache, int address, int num_sets) {
     int set = address % num_sets;
     int8_t tag_size = getTagAddress(cache);
     int address_tag = address >> tag_size;
-    //printf("%d\n",address);
-    //printf("%d\n",address_tag);
     if (cache->lines[set].valid && cache->lines[set].tag == address_tag)
         return CACHE_HIT;
     return CACHE_MISS;
@@ -78,6 +76,8 @@ void updateCacheMissDirectMapping(Cache *cache, int address, int num_sets){
 int fileExists(const char *filename) {
     return access(filename, F_OK) != -1;
 }
+
+
 
 void Gen_Input_File(int cases) {
     FILE *output_file = fopen("input.txt", "w");

@@ -6,23 +6,29 @@
 
 #define INPUT_FILE "input.txt"
 #define NB_CASES_RAM 1024
-#define CACHE_SIZE 256
+#define CACHE_SIZE 32
 #define CACHE_MISS -1
 #define CACHE_HIT 1
+#define WORD_SIZE 1
+#define CACHE_ACCESS_TIME 1
+#define RAM_ACCESS_TIME 50
 
+void printCache(Cache *cache) {
+    printf("Contenu du cache :\n");
+    for (int i = 0; i < CACHE_SIZE; i++) {
+        printf("Ligne %d - Tag : %d, Valide : %d\n", i, cache->lines[i].tag, cache->lines[i].valid);
+    }
+}
 
 int main() {
     srand(time(NULL));
     // Initialisation des paramètres
-    int word_size = 1; // Taille d'un mot en octets
-    int num_lines_cache = 16; // Nombre de lignes du cache
-    int cache_access_time = 1; // Temps d'accès au cache en nombre de cycles
-    int ram_access_time = 50; // Temps d'accès à la RAM en nombre de cycles
+    int num_lines_cache = CACHE_SIZE; // Nombre de lignes du cache
 
    if(!fileExists(INPUT_FILE)){
         remove(INPUT_FILE);
    }
-    Gen_Input_File(NB_CASES_RAM);
+    Gen_Input_File(NB_CASES_RAM-1);
     printf("Fichier d'entree genere avec succes.\n");
 
     // Initialisation du cache
@@ -64,8 +70,7 @@ int main() {
         return 1;
     }
 
-    Cache* cache = initializeCache(num_lines_cache,word_size);
-
+    Cache* cache = initializeCache(num_lines_cache,WORD_SIZE);
     switch (choice) {
         case 1:
             // Simulation du cache Direct Mapping
@@ -78,6 +83,9 @@ int main() {
                     // Mettre à jour le cache en cas de miss
                     updateCacheMissDirectMapping(cache,address,num_lines_cache);
                 }
+                // printCache(cache); // debug mode de la hess
+                // printf("Press enter to continue !\n");
+                // getchar(); 
             }
             break;
         case 2:
@@ -117,18 +125,18 @@ int main() {
     fclose(input_file);
 
     // Calcul des métriques
-    int total_access_time = num_hits * cache_access_time + num_misses * ram_access_time;
+    int total_access_time = num_hits * CACHE_ACCESS_TIME + num_misses * RAM_ACCESS_TIME;
     double success_rate = (double)num_hits / (num_hits + num_misses);
     double average_access_time = (double)total_access_time / (num_hits + num_misses);
-    double speedup = (double)total_access_time / (num_hits * ram_access_time);
+    double speedup = (double)total_access_time / (num_hits * RAM_ACCESS_TIME);
 
     // Affichage des résultats
     printf("Taux de succes : %.2lf\n", success_rate);
     printf("Temps global d'acces : %d cycles\n", total_access_time);
     printf("Temps moyen d'acces a une donnee : %.2lf cycles\n", average_access_time);
     printf("Speedup : %.2lf\n", speedup);
-
     // Libération de la mémoire allouée au cache
+    printCache(cache);
     freeCache(cache);
 
     return 0;
