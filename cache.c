@@ -47,9 +47,19 @@ int accessCacheDirectMapping(Cache* cache, int address, int num_sets) {
 
 // Fonction pour accéder au cache (Fully Associative)
 int accessCacheFullyAssociative(Cache* cache, int address) {
-    for (int i = 0; i < cache->num_lines; i++) {
-        if (cache->lines[i].valid && cache->lines[i].tag == address)
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
+     for (int i = 0; i < cache->num_lines; i++) {
+        if (cache->lines[i].tag == address_tag) {
+            // L'adresse est déjà présente dans le cache (hit)
+            // Mettre à jour le compteur de toutes les lignes du cache pour indiquer leur utilisation la plus récente
+            for (int j = 0; j < cache->num_lines; j++) {
+                if (j != i) {
+                    cache->lines[j].counter++;
+                }
+            }
             return CACHE_HIT;
+        }
     }
     return CACHE_MISS;
 }
@@ -57,9 +67,11 @@ int accessCacheFullyAssociative(Cache* cache, int address) {
 // Fonction pour accéder au cache (Set Associative)
 int accessCacheSetAssociative(Cache* cache, int address, int num_sets) {
     int set = address % num_sets;
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
     for (int i = 0; i < num_sets; i++) {
         int index = set * num_sets + i;
-        if (cache->lines[index].valid && cache->lines[index].tag == address)
+        if (cache->lines[index].valid && cache->lines[index].tag == address_tag)
             return CACHE_HIT;
     }
     return CACHE_MISS;
@@ -71,6 +83,49 @@ void updateCacheMissDirectMapping(Cache *cache, int address, int num_sets){
     int address_tag = address >> tag_size;
     cache->lines[set].tag = address_tag;
     cache->lines[set].valid = 1;      
+}
+
+void updateCacheMissFullyAssociative(Cache *cache, int address){
+    int least_recently_used_index = 0;
+    int least_recently_used_counter = cache->lines[0].counter;
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
+    for (int i = 1; i < cache->num_lines; i++) {
+        if (cache->lines[i].counter > least_recently_used_counter) {
+            least_recently_used_index = i;
+            least_recently_used_counter = cache->lines[i].counter;
+        }
+    }
+    cache->lines[least_recently_used_index].tag = address_tag;
+    cache->lines[least_recently_used_index].counter = 0;
+    for (int i = 0; i < cache->num_lines; i++) {
+    if (i != least_recently_used_index) {
+        cache->lines[i].counter++;
+    }
+}
+   
+}
+
+void updateCacheMissSetAssociative(Cache *cache, int address, int num_sets){
+    int set_index = address % num_sets;
+    int least_recently_used_index = set_index * num_sets;
+    int least_recently_used_counter = cache->lines[least_recently_used_index].counter;
+    for (int i = set_index * num_sets + 1; i < (set_index + 1) * num_sets; i++) {
+        if (cache->lines[i].counter > least_recently_used_counter) {
+            least_recently_used_index = i;
+            least_recently_used_counter = cache->lines[i].counter;
+        }
+    }
+    int8_t tag_size = getTagAddress(cache);
+    int address_tag = address >> tag_size;
+    cache->lines[least_recently_used_index].tag = address_tag;
+    cache->lines[least_recently_used_index].valid = 1;
+    cache->lines[least_recently_used_index].counter = 0;
+    for (int i = set_index * num_sets; i < (set_index + 1) * num_sets; i++) {
+    if (i != least_recently_used_index) {
+        cache->lines[i].counter++;
+    }
+    }
 }
 
 int fileExists(const char *filename) {

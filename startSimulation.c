@@ -16,7 +16,7 @@
 void printCache(Cache *cache) {
     printf("Contenu du cache :\n");
     for (int i = 0; i < CACHE_SIZE; i++) {
-        printf("Ligne %d - Tag : %d, Valide : %d\n", i, cache->lines[i].tag, cache->lines[i].valid);
+        printf("Ligne %d - Tag : %d, Compteur : %d, Valide : %d\n", i, cache->lines[i].tag, cache->lines[i].counter, cache->lines[i].valid);
     }
 }
 
@@ -95,20 +95,27 @@ int main() {
             break;
         case 2:
             // Simulation du cache Fully Associative
+            printf("Voulez-vous activer le mode de debogage ? (1 pour Oui, 0 pour Non) : ");
+            scanf("%d", &debug_mode);
             while (fscanf(input_file, "%d", &address) == 1) {
                 int result = accessCacheFullyAssociative(cache, address);
                 if (result == CACHE_HIT)
                     num_hits++;
                 else {
                     num_misses++;
-                    // Mettre à jour le cache en cas de miss
-                    // ...
-                    // LRU à implémenter
+                    updateCacheMissFullyAssociative(cache,address);
+                }
+                if (debug_mode == 1){
+                    printCache(cache); // Affichage du cache en mode de débogage si activé1
+                    printf("Press enter to continue !\n");
+                    getchar(); 
                 }
             }
             break;
         case 3:
             // Simulation du cache Set Associative
+            printf("Voulez-vous activer le mode de debogage ? (1 pour Oui, 0 pour Non) : ");
+            scanf("%d", &debug_mode);
             int num_sets = num_lines_cache; // Pour cette simulation, nous considérons que le nombre d'ensembles est égal au nombre de lignes du cache
             while (fscanf(input_file, "%d", &address) == 1) {
                 int result = accessCacheSetAssociative(cache, address, num_sets);
@@ -116,9 +123,12 @@ int main() {
                     num_hits++;
                 else {
                     num_misses++;
-                    // Mettre à jour le cache en cas de miss
-                    // ...
-                    // LRU à implémenter
+                    updateCacheMissSetAssociative(cache,address,num_sets);
+                }
+                if (debug_mode == 1){
+                    printCache(cache); // Affichage du cache en mode de débogage si activé1
+                    printf("Press enter to continue !\n");
+                    getchar(); 
                 }
             }
             break;
